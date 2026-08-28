@@ -101,6 +101,31 @@
   }
   .latest-strip b{color:var(--gold); font-family:'IBM Plex Mono';}
 
+  .top-ad-slot{
+    padding:10px 20px 0;
+    text-align:center;
+  }
+  .top-ad-slot .ad-label{
+    font-family:'IBM Plex Mono'; font-size:10px; letter-spacing:.08em;
+    color:var(--ink-faint); text-transform:uppercase; margin-bottom:6px;
+  }
+
+  .trust-badge{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    margin:14px 20px 0; padding:10px 14px;
+    background:color-mix(in srgb, var(--good) 12%, var(--card));
+    border:1px solid color-mix(in srgb, var(--good) 35%, var(--line));
+    border-radius:10px;
+    font-size:12px; color:var(--ink-soft); text-align:center; flex-wrap:wrap;
+  }
+  .trust-badge .check{
+    flex:0 0 auto; width:16px; height:16px; border-radius:50%;
+    background:var(--good); color:#0F1A3C;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+  }
+  .trust-badge b{color:var(--ink);}
+
   .section{padding:28px 20px 0;}
   .section-label{
     font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:.1em;
@@ -243,6 +268,18 @@
   <div class="topbar">
     <span class="topbar-badge"><span class="dot"></span>로또 데이터 분석소</span>
     <span class="topbar-badge">🍀</span>
+  </div>
+
+  <div class="top-ad-slot">
+    <ins class="kakao_ad_area" style="display:none;"
+      data-ad-unit = "DAN-OlFPiGglohqK6q1v"
+      data-ad-width = "320"
+      data-ad-height = "50"></ins>
+  </div>
+
+  <div class="trust-badge">
+    <span class="check">✓</span>
+    <span>동행복권 공식 발표 번호 <b>1회부터 전체</b> 반영 · 추측 아닌 실데이터 통계</span>
   </div>
 
   <div class="hero">
