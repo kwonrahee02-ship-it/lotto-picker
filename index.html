@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<title>로또 번호 추천기 | 역대 데이터 기반 번호 뽑기</title>
+<meta name="description" content="2002년 1회부터 최신 회차까지 로또 6/45 전 회차 데이터를 분석해서 번호를 추천합니다. 역대 최다 출현, 최근 트렌드, 오랫동안 안 나온 번호까지 확인하고 뽑아보세요.">
+<meta name="keywords" content="로또 번호 추천,로또 번호 생성기,로또645,로또 통계,로또 당첨번호,이번주 로또 번호,로또 번호 뽑기,로또 분석">
+<meta property="og:title" content="로또 번호 추천기">
+<meta property="og:description" content="역대 전 회차 데이터로 뽑는 이번 주 번호.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23FBC400'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle'%3E%F0%9F%8D%80%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#0F1A3C">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://developers.kakao.com/sdk/js/kakao.min.js" defer></script>
+<style>
+  :root{
+    --paper:#0F1A3C;
+    --card:#16224D;
+    --card-raise:#1C2B5C;
+    --ink:#F3F5FB;
+    --ink-soft:#C7CEE8;
+    --ink-faint:#8D98C4;
+    --line:#2A3868;
+    --line-strong:#3B4B87;
+    --gold:#FBC400;
+    --gold-ink:#0F1A3C;
+    --good:#3FDB9B;
+    --bad:#FF6B5C;
+    --ball-1:#FBC400;
+    --ball-2:#69C8F2;
+    --ball-3:#FF7272;
+    --ball-4:#AAAAAA;
+    --ball-5:#B0D840;
+    --shadow: 0 1px 0 rgba(0,0,0,.2), 0 10px 24px -14px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+    min-height:100vh;
+    overflow-x:hidden;
+    word-break:keep-all;
+    overflow-wrap:break-word;
+  }
+  .mono{font-family:'IBM Plex Mono','IBM Plex Sans KR',monospace; font-variant-numeric:tabular-nums;}
+  .display{font-family:'Black Han Sans','IBM Plex Sans KR',sans-serif; font-weight:400;}
+  h1,h2,h3,p{margin:0;}
+  img,svg{display:block; max-width:100%;}
+  button{font-family:inherit;}
+
+  #app{
+    max-width:560px;
+    margin:0 auto;
+    min-height:100vh;
+    padding:0 0 40px;
+  }
+  @media (min-width:680px){
+    body{
+      background:
+        radial-gradient(900px circle at 12% 4%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 58%),
+        radial-gradient(900px circle at 88% 96%, color-mix(in srgb, var(--ball-2) 14%, transparent), transparent 58%),
+        var(--paper);
+      padding:48px 24px;
+    }
+    #app{ border-radius:24px; box-shadow:0 40px 100px -40px rgba(0,0,0,.6); overflow:hidden; }
+  }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px;
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-badge{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:.08em;
+    color:var(--ink-soft); text-transform:uppercase;
+  }
+  .topbar-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+
+  .hero{padding:32px 20px 8px; text-align:center;}
+  .eyebrow{
+    font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:.12em;
+    color:var(--ink-faint); text-transform:uppercase; margin-bottom:12px;
+  }
+  .hero h1{font-size:28px; line-height:1.35; text-wrap:balance; margin-bottom:10px;}
+  .hero p{font-size:14.5px; color:var(--ink-soft); max-width:36ch; margin:0 auto;}
+
+  .latest-strip{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    margin:20px 20px 0; padding:12px 16px;
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    font-size:12.5px; color:var(--ink-soft); flex-wrap:wrap;
+  }
+  .latest-strip b{color:var(--gold); font-family:'IBM Plex Mono';}
+
+  .section{padding:28px 20px 0;}
+  .section-label{
+    font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-faint);
+    margin-bottom:12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after{content:''; flex:1; height:1px; background:var(--line);}
+
+  .pick-card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:20px; margin-bottom:14px;
+    box-shadow:var(--shadow);
+  }
+  .pick-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px;}
+  .pick-title{font-size:15px; font-weight:700; color:var(--ink);}
+  .pick-desc{font-size:12px; color:var(--ink-faint); margin-top:2px;}
+  .balls{display:flex; gap:8px; flex-wrap:wrap;}
+  .ball{
+    width:42px; height:42px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono'; font-weight:700; font-size:15px;
+    color:#111; box-shadow:0 3px 0 rgba(0,0,0,.25);
+  }
+  .r1{background:var(--ball-1);}
+  .r2{background:var(--ball-2);}
+  .r3{background:var(--ball-3); color:#fff !important;}
+  .r4{background:var(--ball-4);}
+  .r5{background:var(--ball-5);}
+
+  .btn-primary{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--gold); color:var(--gold-ink);
+    border:none; border-radius:10px;
+    padding:16px 24px;
+    font-size:16px; font-weight:700;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .12s ease;
+    width:100%;
+    margin-top:6px;
+  }
+  .btn-primary:active{transform:scale(.98);}
+  .btn-secondary{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background:transparent; color:var(--ink);
+    border:1.5px solid var(--line-strong); border-radius:10px;
+    padding:14px 22px;
+    font-size:14px; font-weight:600;
+    cursor:pointer;
+    width:100%;
+  }
+  .btn-secondary:active{transform:scale(.98);}
+
+  .stat-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+  }
+  .stat-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .stat-row:last-child{margin-bottom:0;}
+  .stat-ball{
+    width:30px; height:30px; border-radius:50%; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono'; font-weight:700; font-size:12px; color:#111;
+  }
+  .stat-bar-track{flex:1; height:8px; background:var(--paper); border:1px solid var(--line-strong); border-radius:4px; overflow:hidden;}
+  .stat-bar-fill{height:100%; background:var(--gold); border-radius:4px;}
+  .stat-val{flex:0 0 46px; text-align:right; font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-soft);}
+
+  .history-list{display:flex; flex-direction:column; gap:8px;}
+  .history-row{
+    display:flex; align-items:center; gap:10px;
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; flex-wrap:wrap;
+  }
+  .history-no{
+    font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-faint);
+    flex:0 0 auto; min-width:56px;
+  }
+  .history-balls{display:flex; gap:5px; flex:1;}
+  .history-ball{
+    width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono'; font-weight:700; font-size:11px; color:#111;
+  }
+  .history-plus{color:var(--ink-faint); font-size:12px; align-self:center;}
+
+  .ad-slot{
+    margin:20px 0 0;
+    border:1px dashed var(--line-strong);
+    border-radius:8px;
+    padding:14px;
+    text-align:center;
+    font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:.08em;
+    color:var(--ink-faint); text-transform:uppercase;
+  }
+
+  .coupang-banner{
+    margin-top:20px; border-radius:12px; overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .coupang-banner iframe{width:100%; border:none; display:block;}
+
+  .share-block{margin-top:8px; display:flex; flex-direction:column; gap:10px;}
+  .share-hook{
+    font-size:13.5px; color:var(--ink-soft); text-align:center;
+    line-height:1.55; margin-bottom:14px;
+  }
+  .share-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:6px;}
+  .share-btn{
+    width:46px; height:46px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; font-weight:700;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .share-btn.kakao{background:#FEE500; color:#3A1D1D; border-color:#FEE500;}
+  .share-btn.twitter{background:#111111; color:#fff; border-color:#111111;}
+  .share-btn.naver{background:#03C75A; color:#fff; border-color:#03C75A;}
+
+  .disclaimer{
+    font-size:11.5px; color:var(--ink-faint); text-align:center;
+    padding:24px 20px; line-height:1.7;
+  }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper);
+    padding:12px 20px; border-radius:8px; font-size:13.5px;
+    opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease;
+    z-index:50; white-space:nowrap;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <span class="topbar-badge"><span class="dot"></span>로또 데이터 분석소</span>
+    <span class="topbar-badge">🍀</span>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">역대 전 회차 데이터 기반</div>
+    <h1 class="display">이번 주 로또 번호,<br>데이터로 골라드립니다</h1>
+    <p>2002년 1회부터 지금까지 전 회차를 분석해서<br>네 가지 방식으로 번호를 뽑아드려요.</p>
+  </div>
+
+  <div class="latest-strip mono" id="latest-strip">최신 회차 정보 불러오는 중...</div>
+
+  <div class="section">
+    <div class="section-label">번호 뽑기</div>
+    <div id="pick-cards"></div>
+    <button class="btn-primary" id="btn-reroll">🎲 다시 뽑기</button>
+  </div>
+
+  <div class="section">
+    <div class="section-label">역대 최다 / 최소 출현 번호</div>
+    <div class="stat-card" id="stat-top"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">최근 10회 당첨번호</div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+  <div class="section">
+    <div class="ad-slot">
+      <ins class="kakao_ad_area" style="display:none;"
+        data-ad-unit = ""
+        data-ad-width = "320"
+        data-ad-height = "100"></ins>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="share-block">
+      <p class="share-hook">이 번호, 친구랑 같이 사서 나눠 가지실 건가요?<br>단톡방에 공유하고 같이 뽑아보세요.</p>
+      <div class="share-row">
+        <button class="share-btn kakao" title="카카오톡 공유" onclick="shareKakao()">💬</button>
+        <button class="share-btn twitter" title="트위터 공유" onclick="shareTwitter()">𝕏</button>
+        <button class="share-btn naver" title="네이버 공유" onclick="shareNaver()">N</button>
+        <button class="share-btn" title="링크 복사" onclick="copyLink()">🔗</button>
+      </div>
+      <button class="btn-secondary" id="btn-retry-scroll" onclick="window.scrollTo({top:0,behavior:'smooth'})">⬆️ 처음으로</button>
+    </div>
+  </div>
+
+  <p class="disclaimer">본 콘텐츠는 재미를 위한 통계 정보 제공 서비스이며, 로또 당첨을 보장하지 않습니다.<br>과거 출현 빈도는 미래 추첨 결과에 영향을 주지 않는 확률적으로 독립적인 사건입니다.<br>복권 구매는 반드시 본인의 책임과 여유 범위 내에서 해주세요.</p>
+
+</div>
+
+<div class="toast" id="toast">링크가 복사되었습니다</div>
+
+<script>
+const BALL_CLASS = n => n <= 10 ? 'r1' : n <= 20 ? 'r2' : n <= 30 ? 'r3' : n <= 40 ? 'r4' : 'r5';
+
+let STATS = null;
+let currentPicks = null;
+
+function weightedSample(pool, weightFn, count){
+  const items = pool.map(n => ({ n, w: Math.max(weightFn(n), 0.5) }));
+  const picked = [];
+  while(picked.length < count && items.length){
+    const total = items.reduce((s, it) => s + it.w, 0);
+    let r = Math.random() * total;
+    let idx = 0;
+    for(; idx < items.length; idx++){
+      r -= items[idx].w;
+      if(r <= 0) break;
+    }
+    idx = Math.min(idx, items.length - 1);
+    picked.push(items[idx].n);
+    items.splice(idx, 1);
+  }
+  return picked.sort((a,b) => a - b);
+}
+
+function pureRandom(count){
+  const pool = Array.from({length:45}, (_, i) => i + 1);
+  const picked = [];
+  while(picked.length < count){
+    const idx = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  return picked.sort((a,b) => a - b);
+}
+
+function generatePicks(){
+  const nums = STATS.numbers;
+  const allTime = weightedSample(nums.map(x=>x.n), n => nums[n-1].allTime, 6);
+  const recent = weightedSample(nums.map(x=>x.n), n => nums[n-1].recent + 1, 6);
+  const overdue = weightedSample(nums.map(x=>x.n), n => nums[n-1].overdue, 6);
+  const random = pureRandom(6);
+  return [
+    { title:'역대 최다 출현 조합', desc:`1회~${STATS.latestNo}회 전체 기준, 많이 나온 번호일수록 뽑힐 확률 높음`, nums: allTime },
+    { title:'최근 1년 트렌드 조합', desc:'최근 52회 기준 요즘 자주 나오는 번호', nums: recent },
+    { title:'오랫동안 안 나온 조합', desc:'마지막 출현 이후 가장 오래 기다린 번호', nums: overdue },
+    { title:'완전 랜덤', desc:'통계 다 무시하고 순수 랜덤 6개', nums: random },
+  ];
+}
+
+function ballHTML(n, cls){
+  return '<span class="ball ' + (cls || BALL_CLASS(n)) + '">' + n + '</span>';
+}
+
+function renderPicks(){
+  currentPicks = generatePicks();
+  const wrap = document.getElementById('pick-cards');
+  wrap.innerHTML = currentPicks.map(p =>
+    '<div class="pick-card">' +
+      '<div class="pick-head"><div><div class="pick-title">' + p.title + '</div>' +
+      '<div class="pick-desc">' + p.desc + '</div></div></div>' +
+      '<div class="balls">' + p.nums.map(n => ballHTML(n)).join('') + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function renderLatestStrip(){
+  const el = document.getElementById('latest-strip');
+  el.innerHTML = '최신 <b>' + STATS.latestNo + '회</b> (' + STATS.latestDate + ') · 누적 ' + STATS.totalDraws + '회차 분석';
+}
+
+function renderStatTop(){
+  const nums = STATS.numbers.slice().sort((a,b) => b.allTime - a.allTime);
+  const top5 = nums.slice(0, 5);
+  const bottom5 = nums.slice(-5).reverse();
+  const maxVal = top5[0].allTime;
+  function row(item){
+    const pct = Math.round((item.allTime / maxVal) * 100);
+    return '<div class="stat-row">' +
+      '<span class="stat-ball ' + BALL_CLASS(item.n) + '">' + item.n + '</span>' +
+      '<div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + pct + '%"></div></div>' +
+      '<span class="stat-val">' + item.allTime + '회</span></div>';
+  }
+  document.getElementById('stat-top').innerHTML =
+    '<div style="font-size:12px;color:var(--ink-faint);margin-bottom:10px;">최다 출현 TOP 5</div>' +
+    top5.map(row).join('') +
+    '<div style="font-size:12px;color:var(--ink-faint);margin:16px 0 10px;">최소 출현 TOP 5</div>' +
+    bottom5.map(row).join('');
+}
+
+function renderHistory(){
+  const wrap = document.getElementById('history-list');
+  wrap.innerHTML = STATS.recentDraws.map(d =>
+    '<div class="history-row">' +
+      '<span class="history-no mono">' + d.no + '회<br>' + d.date.slice(5) + '</span>' +
+      '<div class="history-balls">' + d.numbers.map(n => '<span class="history-ball ' + BALL_CLASS(n) + '">' + n + '</span>').join('') +
+      '<span class="history-plus">+</span>' +
+      '<span class="history-ball ' + BALL_CLASS(d.bonus) + '" style="opacity:.7;">' + d.bonus + '</span></div>' +
+    '</div>'
+  ).join('');
+}
+
+async function init(){
+  const res = await fetch('lotto-data/stats.json');
+  STATS = await res.json();
+  renderLatestStrip();
+  renderPicks();
+  renderStatTop();
+  renderHistory();
+}
+init();
+
+document.getElementById('btn-reroll').addEventListener('click', renderPicks);
+
+/* ================= SHARE ================= */
+window.addEventListener('DOMContentLoaded', () => {
+  if(window.Kakao && !Kakao.isInitialized()){
+    Kakao.init('db7d585780b0e9306521908da8b91840');
+  }
+});
+
+function getResultUrl(){
+  return window.location.origin + window.location.pathname;
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function pickSummary(){
+  if(!currentPicks) return '';
+  return currentPicks[0].nums.join(', ');
+}
+
+function shareKakao(){
+  const resultUrl = getResultUrl();
+  if(!window.Kakao || !Kakao.isInitialized()){
+    showToast('카카오 공유 초기화에 실패했습니다');
+    return;
+  }
+  Kakao.Share.sendDefault({
+    objectType: 'feed',
+    content: {
+      title: '🍀 역대 데이터로 뽑은 이번 주 로또 번호',
+      description: '역대 최다 출현 조합: ' + pickSummary() + ' — 너도 한번 뽑아봐',
+      imageUrl: new URL('lotto-og.png', window.location.href).href,
+      imageWidth: 400,
+      imageHeight: 400,
+      link: { mobileWebUrl: resultUrl, webUrl: resultUrl },
+    },
+    buttons: [
+      { title: '나도 뽑아보기', link: { mobileWebUrl: resultUrl, webUrl: resultUrl } },
+    ],
+  });
+}
+
+function shareTwitter(){
+  const text = '🍀 역대 데이터로 뽑은 이번 주 로또 번호: ' + pickSummary() + ' — 너도 한번 뽑아봐';
+  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(getResultUrl()), '_blank');
+}
+
+function shareNaver(){
+  const title = '🍀 역대 데이터로 뽑은 이번 주 로또 번호';
+  window.open('https://share.naver.com/web/shareView?url=' + encodeURIComponent(getResultUrl()) + '&title=' + encodeURIComponent(title), '_blank');
+}
+
+function copyLink(){
+  navigator.clipboard.writeText(getResultUrl()).then(() => {
+    showToast('링크가 복사되었습니다');
+  }).catch(() => {
+    showToast('복사에 실패했습니다');
+  });
+}
+</script>
+<script type="text/javascript" src="//t1.kakaocdn.net/kas/static/ba.min.js" async></script>
+</body>
+</html>
